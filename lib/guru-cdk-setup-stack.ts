@@ -21,7 +21,7 @@ export class GuruCdkSetupStack extends cdk.Stack {
       thumbprints: ["a031c46782e6e6c662c2c87c76da9aa62ccabd8e"],
     });
 
-    const providerNames : string[] = this.node.tryGetContext('allowListedGithubOrgs');
+    const providerNames : string[] = this.node.tryGetContext('allowedGithubRepos');
     const transformedList : string[] = providerNames.map(repo => `repo:${repo}:*`);
 
     // IAM OIDC Principal
