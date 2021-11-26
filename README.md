@@ -1,5 +1,6 @@
 # CDK TypeScript project to set up the CodeGuru Reviewer CI/CD integration
 
+This repo contains a CDK Stack that sets up [CodeGuru Reviewer GitHub Action](https://github.com/marketplace/actions/codeguru-reviewer) in your AWS account.
 
 ## Before we get started
 
@@ -7,14 +8,15 @@ If you do not have the CDK for TypeScript installed, follow the instructions [he
 
 ## Specify which organizations can use CodeGuru Reviewer
 
-In the file [`./cdk.json`](cdk.json), add all GitHub organizations or users that should be allowed to use CodeGuru Reviewer in the `allowListedGithubOrgs` list. For example:
+In the file [`./cdk.json`](cdk.json), add all GitHub repositories that should be allowed to use CodeGuru Reviewer in the `allowedGithubRepos` list. For example:
 ```
-"allowListedGithubOrgs": ["awslabs", "aws-samples", "alexa"]
+"allowedGithubRepos": ["aws-samples/*", "awslabs/smithy"]
 ```
+allows all repositories in the organization `aws-sample` and the repository `awslabs/smithy` to use CodeGuru Reviewer.
 
 ## Deploy the Stack to your account
 
-Once you have updated the `allowListedGithubOrgs`, run the following commands:
+Once you have updated the `allowedGithubRepos`, run the following commands:
 ```
 npm run build
 cdk deploy

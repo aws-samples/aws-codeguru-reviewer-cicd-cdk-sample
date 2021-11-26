@@ -22,7 +22,7 @@ export class GuruCdkSetupStack extends cdk.Stack {
     });
 
     const providerNames : string[] = this.node.tryGetContext('allowListedGithubOrgs');
-    const transformedList : string[] = providerNames.map(org => `repo:${org}/*:*`);
+    const transformedList : string[] = providerNames.map(repo => `repo:${repo}:*`);
 
     // IAM OIDC Principal
     const openIdConnectPrincipal: iam.OpenIdConnectPrincipal =
