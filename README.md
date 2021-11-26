@@ -32,7 +32,7 @@ GuruCdkSetupStack.Bucket = codeguru-reviewer-build-artifacts-123456789012-us-eas
 
 ## Add the Action to your GitHub repositories
 
-You can use the [`./example-action.yml`](example-action.yml):
+You can use the following template for your Action:
 
 ```
 # Add this file to your .github/workflows directory
@@ -50,11 +50,8 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - uses: actions/setup-java@v1
-      with:
-        java-version: 1.8
 
-# Add your build instructions here
+# Add your build instructions here. E.g., setup java and run a Gralde build.
 
     - name: Configure AWS credentials from Test account
       uses: aws-actions/configure-aws-credentials@master
