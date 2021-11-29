@@ -1,6 +1,12 @@
 {
   "name": "guru-cdk-setup",
+  "license" : "MIT-0",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aws-samples/aws-codeguru-reviewer-cicd-cdk-sample.git"
+  },
+  "description": "Example CDK Stack to set up CodeGuru Reviewer CI/CD with GitHub.",
   "bin": {
     "guru-cdk-setup": "bin/guru-cdk-setup.js"
   },

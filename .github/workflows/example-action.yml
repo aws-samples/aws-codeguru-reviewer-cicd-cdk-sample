@@ -3,7 +3,7 @@ name: Analyze with CodeGuru Reviewer
 on: [pull_request]
 permissions:
     id-token: write
-    contents: write
+    contents: read
     security-events: write 
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
         fetch-depth: 0
 
     - name: Configure AWS credentials from Test account
-      uses: aws-actions/configure-aws-credentials@master
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         role-to-assume: arn:aws:iam::048169001733:role/GuruGitHubCICDRole
         aws-region: us-west-2

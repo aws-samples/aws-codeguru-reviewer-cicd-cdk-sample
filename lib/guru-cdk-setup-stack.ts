@@ -7,13 +7,6 @@ export class GuruCdkSetupStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const bucketPrefix = "codeguru-reviewer-build-artifacts";
-
-    const artifactBucket = new s3.Bucket(this, bucketPrefix, {
-      bucketName: `${bucketPrefix}-${process.env.CDK_DEFAULT_ACCOUNT}-${process.env.CDK_DEFAULT_REGION}`,
-      versioned: false
-    });
-
     const openIdConnectProvider: iam.OpenIdConnectProvider =
     new iam.OpenIdConnectProvider(this, "GitHubOicdProvider", {
       url: "https://token.actions.githubusercontent.com",
@@ -32,19 +25,22 @@ export class GuruCdkSetupStack extends cdk.Stack {
           "token.actions.githubusercontent.com:sub": transformedList
         },
       });
-
-    
-    // IAM Policy document
-    const gitHubDeploymentPolicy: iam.PolicyDocument =
+    // Policy to use CodeGuru Reviewer with CI/CD
+    const guruCiCdPolicy: iam.PolicyDocument =
       new iam.PolicyDocument({
         statements: [
           new iam.PolicyStatement({
             actions: [
-              "s3:PutObject", 
-              "s3:GetObject", 
-              "s3:ListBucket"],
-            resources: [ `${artifactBucket.bucketArn}`, `${artifactBucket.bucketArn}/*` ],
-          })         
+              "codeguru-reviewer:ListRepositoryAssociations",
+              "codeguru-reviewer:AssociateRepository",
+              "codeguru-reviewer:DescribeRepositoryAssociation",
+              "codeguru-reviewer:CreateCodeReview",
+              "codeguru-reviewer:ListCodeReviews",
+              "codeguru-reviewer:DescribeCodeReview",
+              "codeguru-reviewer:ListRecommendations"
+            ],
+            resources: [`*`]
+          }),          
         ],
       });
 
@@ -52,13 +48,18 @@ export class GuruCdkSetupStack extends cdk.Stack {
     const role: iam.Role = new iam.Role(this, "GitHubActionRole", {
       roleName: "GitHubActionRole",
       inlinePolicies: {
-        GitHubDeploymentPolicy: gitHubDeploymentPolicy,
+        guruCiCdPolicy: guruCiCdPolicy
       },
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonCodeGuruReviewerFullAccess")
-      ],
       assumedBy: openIdConnectPrincipal,
-    });    
+    });
+
+    // Create S3 bucket for source and build artifacts, and give Role access to it.
+    const bucketPrefix = "codeguru-reviewer-build-artifacts";
+    const artifactBucket = new s3.Bucket(this, bucketPrefix, {
+      bucketName: `${bucketPrefix}-${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}`,
+      versioned: false
+    });
+    artifactBucket.grantReadWrite(role)
  
     new cdk.CfnOutput(this, "Role", {
       value: role.roleArn,

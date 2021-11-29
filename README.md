@@ -6,6 +6,13 @@ This repo contains a CDK Stack that sets up [CodeGuru Reviewer GitHub Action](ht
 
 If you do not have the CDK for TypeScript installed, follow the instructions [here](https://docs.aws.amazon.com/cdk/latest/guide/work-with-cdk-typescript.html) and make sure your credentials are [set up correctly](https://docs.aws.amazon.com/cdk/latest/guide/work-with.html) so you can deploy with CDK.
 
+Once everything is set up correctly, fetch the dependencies and compile:
+
+```
+npm install
+npm run build
+```
+
 ## Specify which organizations can use CodeGuru Reviewer
 
 In the file [`./cdk.json`](cdk.json), add all GitHub repositories that should be allowed to use CodeGuru Reviewer in the `allowedGithubRepos` list. For example:
@@ -18,10 +25,10 @@ allows all repositories in the organization `aws-sample` and the repository `aws
 
 Once you have updated the `allowedGithubRepos`, run the following commands:
 ```
-npm run build
 cdk deploy
 ```
-and you will receive an output like this:
+if you use a named profile, run `cdk deploy --profile {PROFILE-NAME}` instead.
+After the deployment completes, you will receive an output like this:
 
 ```
  ✅  GuruCdkSetupStack
@@ -42,7 +49,7 @@ name: Analyze with CodeGuru Reviewer
 on: [pull_request]
 permissions:
     id-token: write
-    contents: write
+    contents: read
     security-events: write 
 
 jobs:
@@ -56,16 +63,16 @@ jobs:
 # Add your build instructions here. E.g., setup java and run a Gralde build.
 
     - name: Configure AWS credentials from Test account
-      uses: aws-actions/configure-aws-credentials@master
+      uses: aws-actions/configure-aws-credentials@v1
       with:
-        role-to-assume: {ROLE}
+        role-to-assume: {ROLE_ARN}
         aws-region: {REGION}
 
     - name: CodeGuru Reviewer
       uses: aws-actions/codeguru-reviewer@v1.1
       continue-on-error: false
       with:          
-        s3_bucket: {BUCKET}
+        s3_bucket: {BUCKET_NAME}
         # build_path: ./build/libs # Set a build directory if you want security findings for Java.
 
     - name: Upload review result
@@ -74,7 +81,7 @@ jobs:
         sarif_file: codeguru-results.sarif.json
 ```
 
-Replace the strings `{ROLE}`, `{REGION}`, and `{BUCKET}` with the values that you received as output from CDK.
+Replace the strings `{ROLE_ARN}`, `{REGION}`, and `{BUCKET_NAME}` with the values that you received as output from CDK.
 
 For Java, you should also add build instructions before the CodeGuru step and set the build folder in the CodeGuru Action to receive security recommendations.
 
