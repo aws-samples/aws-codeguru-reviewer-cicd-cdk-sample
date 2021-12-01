@@ -1,10 +1,14 @@
 # CDK TypeScript project to set up the CodeGuru Reviewer CI/CD integration
 
-This repo contains a CDK Stack that sets up [CodeGuru Reviewer GitHub Action](https://github.com/marketplace/actions/codeguru-reviewer) in your AWS account.
+This repo contains a CDK Stack that sets up [CodeGuru Reviewer GitHub Action](https://github.com/marketplace/actions/codeguru-reviewer) in your AWS account for CI/CD integration in GitHub. It sets up the correct permissions for using CodeGuru Reviewer as well as creating an S3 bucket that holds the code and build artifacts for analysis by CodeGuru Reivewer.
 
 ## Before we get started
 
-If you do not have the CDK for TypeScript installed, follow the instructions [here](https://docs.aws.amazon.com/cdk/latest/guide/work-with-cdk-typescript.html) and make sure your credentials are [set up correctly](https://docs.aws.amazon.com/cdk/latest/guide/work-with.html) so you can deploy with CDK.
+If you do not have the CDK for TypeScript installed, follow the instructions [here](https://docs.aws.amazon.com/cdk/latest/guide/work-with-cdk-typescript.html) and make sure your credentials are [set up correctly](https://docs.aws.amazon.com/cdk/latest/guide/work-with.html) so you can deploy with CDK. The steps include:
+
+```
+npm install -g typescript aws-cdk
+```
 
 Once everything is set up correctly, fetch the dependencies and compile:
 
@@ -25,10 +29,10 @@ allows all repositories in the organization `aws-sample` and the repository `aws
 
 Once you have updated the `allowedGithubRepos`, run the following commands:
 ```
+cdk bootstrap aws://unknown-account/unknown-region
 cdk deploy
 ```
-if you use a named profile, run `cdk deploy --profile {PROFILE-NAME}` instead.
-After the deployment completes, you will receive an output like this:
+(You only need to bootstrap once.) If you use a named profile, run `cdk deploy --profile {PROFILE-NAME}` instead. After the deployment completes, you will receive an output like this:
 
 ```
  ✅  GuruCdkSetupStack
