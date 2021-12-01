@@ -83,7 +83,9 @@ jobs:
       continue-on-error: false
       with:          
         s3_bucket: {BUCKET_NAME}
-        # build_path: ./build/libs # Set a build directory if you want security findings for Java.
+# Set a build directory where your build system put the jar/class files if you 
+# want security findings for Java. For Gradle, the default build path is:
+#        build_path: ./build/libs 
 
     # This upload the recommendations into GitHub's Security Tab. Before you can start using
     # this feature you need to set up GitHub Code Scanning for your repository:
