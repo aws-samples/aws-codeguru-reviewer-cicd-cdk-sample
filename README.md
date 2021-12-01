@@ -64,7 +64,13 @@ jobs:
       with:
         fetch-depth: 0
 
-# Add your build instructions here. E.g., setup java and run a Gralde build.
+# Add your build instructions here. E.g., setup java and run a Gralde build as follows:
+#    - name: Set up JDK 1.8
+#      uses: actions/setup-java@v1
+#      with:
+#        java-version: 1.8
+#    - name: Build gradle package
+#      run: ./gradlew build -x test
 
     - name: Configure AWS credentials from Test account
       uses: aws-actions/configure-aws-credentials@v1
@@ -90,8 +96,8 @@ jobs:
 
 Replace the strings `{ROLE_ARN}`, `{REGION}`, and `{BUCKET_NAME}` with the values that you received as output from CDK.
 
-This example uses GitHub's Code Scanning feature to display the recommendations. Before you
-can use this feature, you need to enable it for your repository or organization (see [documentation](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/setting-up-code-scanning-for-a-repository)).
+This example uses GitHub's Code Scanning feature to display the recommendations. **If you are using a private repository without paying for Code Scanning, this will fail**. Before you
+can use this feature, you need to enable GitHub Code Scanning for your repository or organization (see [documentation](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/setting-up-code-scanning-for-a-repository)).
 If you are not planning on using this feature, omit the `Upload review result` part.
 
 You can also see all recommendations in you AWS Console.
