@@ -25,6 +25,7 @@ export class GuruCdkSetupStack extends cdk.Stack {
           "token.actions.githubusercontent.com:sub": transformedList
         },
       });
+
     // Policy to use CodeGuru Reviewer with CI/CD
     const guruCiCdPolicy: iam.PolicyDocument =
       new iam.PolicyDocument({

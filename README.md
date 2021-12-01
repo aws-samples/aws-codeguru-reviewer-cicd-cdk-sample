@@ -75,6 +75,9 @@ jobs:
         s3_bucket: {BUCKET_NAME}
         # build_path: ./build/libs # Set a build directory if you want security findings for Java.
 
+    # This upload the recommendations into GitHub's Security Tab. Before you can start using
+    # this feature you need to set up GitHub Code Scanning for your repository:
+    # https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/setting-up-code-scanning-for-a-repository
     - name: Upload review result
       uses: github/codeql-action/upload-sarif@v1
       with:
@@ -82,6 +85,12 @@ jobs:
 ```
 
 Replace the strings `{ROLE_ARN}`, `{REGION}`, and `{BUCKET_NAME}` with the values that you received as output from CDK.
+
+This example uses GitHub's Code Scanning feature to display the recommendations. Before you
+can use this feature, you need to enable it for your repository or organization (see [documentation](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/setting-up-code-scanning-for-a-repository)).
+If you are not planning on using this feature, omit the `Upload review result` part.
+
+You can also see all recommendations in you AWS Console.
 
 For Java, you should also add build instructions before the CodeGuru step and set the build folder in the CodeGuru Action to receive security recommendations.
 
