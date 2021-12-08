@@ -50,7 +50,7 @@ You can use the following template for your Action:
 ```
 # Add this file to your .github/workflows directory
 name: Analyze with CodeGuru Reviewer
-on: [pull_request]
+on: [push]
 permissions:
     id-token: write
     contents: read
@@ -60,25 +60,31 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      continue-on-error: true
+      id: iam-role
+      with:
+        role-to-assume: {ROLE_ARN}
+        aws-region: {REGION}
+    
     - uses: actions/checkout@v2
+      if: steps.iam-role.outcome == 'success'
       with:
         fetch-depth: 0
 
 # Add your build instructions here. E.g., setup java and run a Gralde build as follows:
 #    - name: Set up JDK 1.8
+#      if: steps.iam-role.outcome == 'success'
 #      uses: actions/setup-java@v1
 #      with:
 #        java-version: 1.8
 #    - name: Build gradle package
+#      if: steps.iam-role.outcome == 'success'
 #      run: ./gradlew build -x test
 
-    - name: Configure AWS credentials from Test account
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        role-to-assume: {ROLE_ARN}
-        aws-region: {REGION}
-
     - name: CodeGuru Reviewer
+      if: steps.iam-role.outcome == 'success'
       uses: aws-actions/codeguru-reviewer@v1.1
       continue-on-error: false
       with:          
@@ -91,6 +97,7 @@ jobs:
     # this feature you need to set up GitHub Code Scanning for your repository:
     # https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/setting-up-code-scanning-for-a-repository
     - name: Upload review result
+      if: steps.iam-role.outcome == 'success'
       uses: github/codeql-action/upload-sarif@v1
       with:
         sarif_file: codeguru-results.sarif.json
@@ -107,6 +114,18 @@ You can also see all recommendations in you AWS Console.
 For Java, you should also add build instructions before the CodeGuru step and set the build folder in the CodeGuru Action to receive security recommendations.
 
 For more information, see the [CodeGuru Reviewer documentation](https://docs.aws.amazon.com/codeguru/latest/reviewer-ug/working-with-cicd.html).
+
+Note that only allow-listed organizations and repositories can assume the IAM Role to run CodeGuru Reviewer.
+For this reason, we recommend that you run the CodeGuru Reviewer Action only on `push` events. The action will
+only succeed on `pull_requests` if the repository from which the `pull_request` originated is also part of the
+allow list.
+
+Further, to avoid failures of the Action for users who fork this repository, we label the Role assumption step
+with `id: iam-role` and guard all other workflow steps with:
+```
+if: steps.iam-role.outcome == 'success'
+```
+so they do not get executed if the fork is not allowed to assume the Role.
 
 ## Security
 

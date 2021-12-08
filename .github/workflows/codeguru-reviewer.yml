@@ -1,6 +1,6 @@
 
 name: Analyze with CodeGuru Reviewer
-on: [pull_request]
+on: [push]
 permissions:
     id-token: write
     contents: read
@@ -10,23 +10,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Configure AWS credentials from Test account
+    - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
+      continue-on-error: true
+      id: iam-role
       with:
         role-to-assume: arn:aws:iam::048169001733:role/GuruGitHubCICDRole
         aws-region: us-west-2
+    
+    - uses: actions/checkout@v2
+      if: steps.iam-role.outcome == 'success'
+      with:
+        fetch-depth: 0
 
     - name: CodeGuru Reviewer
+      if: steps.iam-role.outcome == 'success'
       uses: aws-actions/codeguru-reviewer@v1.1
       continue-on-error: false
       with:          
         s3_bucket: codeguru-reviewer-github-profiler-demo-048169001733-uw2
 
     - name: Upload review result
+      if: steps.iam-role.outcome == 'success'
       uses: github/codeql-action/upload-sarif@v1
       with:
         sarif_file: codeguru-results.sarif.json
