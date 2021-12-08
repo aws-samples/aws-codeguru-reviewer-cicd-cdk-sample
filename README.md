@@ -62,6 +62,7 @@ jobs:
     steps:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
+      continue-on-error: true
       id: iam-role
       with:
         role-to-assume: {ROLE_ARN}
