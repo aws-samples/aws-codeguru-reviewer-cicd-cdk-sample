@@ -11,7 +11,7 @@ export class GuruCdkSetupStack extends cdk.Stack {
     new iam.OpenIdConnectProvider(this, "GitHubOicdProvider", {
       url: "https://token.actions.githubusercontent.com",
       clientIds: ["sts.amazonaws.com"],
-      thumbprints: ["a031c46782e6e6c662c2c87c76da9aa62ccabd8e"],
+      thumbprints: ["a031c46782e6e6c662c2c87c76da9aa62ccabd8e", "6938fd4d98bab03faadb97b34396831e3780aea1"],
     });
 
     const providerNames : string[] = this.node.tryGetContext('allowedGithubRepos');
