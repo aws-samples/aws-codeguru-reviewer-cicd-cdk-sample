@@ -13,6 +13,8 @@ npm install typescript aws-cdk
 Once everything is set up correctly, fetch the dependencies and compile:
 
 ```
+git clone https://github.com/aws-samples/aws-codeguru-reviewer-cicd-cdk-sample.git
+cd aws-codeguru-reviewer-cicd-cdk-sample
 npm install
 npm run build
 ```
@@ -27,7 +29,7 @@ allows all repositories in the organization `aws-sample` and the repository `aws
 
 ## Deploy the Stack to your account
 
-Once you have updated the `allowedGithubRepos`, run the following commands:
+Once you have updated the `allowedGithubRepos`, run the following commands (note: `unknown-account/unknown-region` is on purpose, you do not need to change this):
 ```
 npx cdk bootstrap aws://unknown-account/unknown-region
 npx cdk deploy
@@ -45,25 +47,31 @@ GuruCdkSetupStack.Bucket = codeguru-reviewer-build-artifacts-123456789012-us-eas
 
 ## Add the Action to your GitHub repositories
 
-You can use the following template for your Action:
+You can use one of the following template for your Action:
 
+
+### Example for a Java project that build with Gradle
 ```
-# Add this file to your .github/workflows directory
 name: Analyze with CodeGuru Reviewer
-on: [push]
+
+on: 
+ - push
+ - workflow_dispatch # This allows manual triggering of the action through the GitHub UI.
+
 permissions:
     id-token: write
     contents: read
     security-events: write 
 
 jobs:
-  build:
+  analyze:
+    name: Analyze with CodeGuru Reviewer
     runs-on: ubuntu-latest
     steps:
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      continue-on-error: true
       id: iam-role
+      continue-on-error: true
+      uses: aws-actions/configure-aws-credentials@v1
       with:
         role-to-assume: {ROLE_ARN}
         aws-region: {REGION}
@@ -72,30 +80,23 @@ jobs:
       if: steps.iam-role.outcome == 'success'
       with:
         fetch-depth: 0
-
-# Add your build instructions here. E.g., setup java and run a Gralde build as follows:
-#    - name: Set up JDK 1.8
-#      if: steps.iam-role.outcome == 'success'
-#      uses: actions/setup-java@v1
-#      with:
-#        java-version: 1.8
-#    - name: Build gradle package
-#      if: steps.iam-role.outcome == 'success'
-#      run: ./gradlew build -x test
+    - name: Set up JDK 1.8
+      if: steps.iam-role.outcome == 'success'
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - name: Build project
+      if: steps.iam-role.outcome == 'success'
+      run: ./gradlew jar -x test
 
     - name: CodeGuru Reviewer
-      if: steps.iam-role.outcome == 'success'
       uses: aws-actions/codeguru-reviewer@v1.1
+      if: steps.iam-role.outcome == 'success'
       continue-on-error: false
       with:          
         s3_bucket: {BUCKET_NAME}
-# Set a build directory where your build system put the jar/class files if you 
-# want security findings for Java. For Gradle, the default build path is:
-#        build_path: ./build/libs 
+        build_path: ./target/classes
 
-    # This upload the recommendations into GitHub's Security Tab. Before you can start using
-    # this feature you need to set up GitHub Code Scanning for your repository:
-    # https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/setting-up-code-scanning-for-a-repository
     - name: Upload review result
       if: steps.iam-role.outcome == 'success'
       uses: github/codeql-action/upload-sarif@v1
@@ -105,13 +106,62 @@ jobs:
 
 Replace the strings `{ROLE_ARN}`, `{REGION}`, and `{BUCKET_NAME}` with the values that you received as output from CDK.
 
-This example uses GitHub's Code Scanning feature to display the recommendations. **If you are using a private repository without paying for Code Scanning, this will fail**. Before you
+These examples uses GitHub's Code Scanning feature to display the recommendations. **If you are using a private repository without paying for Code Scanning, this will fail**. Before you
 can use this feature, you need to enable GitHub Code Scanning for your repository or organization (see [documentation](https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/setting-up-code-scanning-for-a-repository)).
 If you are not planning on using this feature, omit the `Upload review result` part.
 
-You can also see all recommendations in you AWS Console.
+### Example for a Python project
+```
+name: Analyze with CodeGuru Reviewer
 
-For Java, you should also add build instructions before the CodeGuru step and set the build folder in the CodeGuru Action to receive security recommendations.
+on: 
+ - push
+ - workflow_dispatch # This allows manual triggering of the action through the GitHub UI.
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+  analyze:
+    name: Analyze with CodeGuru Reviewer
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS credentials
+      id: iam-role
+      continue-on-error: true
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: {ROLE_ARN}
+        aws-region: {REGION}
+    
+    - uses: actions/checkout@v2
+      if: steps.iam-role.outcome == 'success'
+      with:
+        fetch-depth: 0
+
+    - name: CodeGuru Reviewer
+      uses: aws-actions/codeguru-reviewer@v1.1
+      if: steps.iam-role.outcome == 'success'
+      continue-on-error: false
+      with:          
+        s3_bucket: {BUCKET_NAME}
+        
+    - name: Store SARIF file
+      if: steps.iam-role.outcome == 'success'
+      uses: actions/upload-artifact@v2
+      with:
+        name: SARIF_recommendations
+        path: ./codeguru-results.sarif.json
+```
+
+Replace the strings `{ROLE_ARN}`, `{REGION}`, and `{BUCKET_NAME}` with the values that you received as output from CDK.
+
+Here, instead of uploading the artifacts to GitHubs security tab, we store them as artifacs of the CICD run. 
+This allows anyone with access to the repository to download the recommendations in SARIF format.
+
+
+You can also see all recommendations in you AWS Console.
 
 For more information, see the [CodeGuru Reviewer documentation](https://docs.aws.amazon.com/codeguru/latest/reviewer-ug/working-with-cicd.html).
 
