@@ -29,12 +29,28 @@ allows all repositories in the organization `aws-sample` and the repository `aws
 
 ## Deploy the Stack to your account
 
-Once you have updated the `allowedGithubRepos`, run the following commands (note: `unknown-account/unknown-region` is on purpose, you do not need to change this):
+Once you have updated the `allowedGithubRepos`, you need bootstrap CDK and deploy the stack.
+
+#### 1) CDK Bootstrap
+Run the command:
 ```
-npx cdk bootstrap aws://unknown-account/unknown-region
-npx cdk deploy
+npx cdk bootstrap --profile {PROFILE_NAME} "aws://unknown-account/unknown-region"
 ```
-(You only need to bootstrap once.) If you use a named profile, run `npx cdk deploy --profile {PROFILE-NAME}` instead. After the deployment completes, you will receive an output like this:
+- Replace `PROFILE_NAME` with one of the named profiles in your `~/.aws/config` file.
+- No need to replace the text in quotes. You can literally use `"aws://unknown-account/unknown-region"`.
+- You only need to boostrap once.
+
+#### 2) CDK Deploy
+
+Run the command:
+```
+npx cdk deploy --profile {PROFILE_NAME}
+```
+- Replace `PROFILE_NAME` with one of the named profiles in your `~/.aws/config` file.
+
+#### 3) Take note of the created resource names
+
+Once the deployment completes, you will receive an output similar to this:
 
 ```
  ✅  GuruCdkSetupStack
@@ -45,12 +61,17 @@ GuruCdkSetupStack.Region = us-east-1
 GuruCdkSetupStack.Bucket = codeguru-reviewer-build-artifacts-123456789012-us-east-1
 ```
 
-## Add the Action to your GitHub repositories
+You will need this information in your GitHub workflow:
+- You will use the **Role ARN** and **Region** when calling the `configure-aws-credentials` action.
+- You will use the **Bucket name** when calling the `codeguru-reviewer` action.
 
-You can use one of the following template for your Action:
+
+## Add the workflow to your GitHub repositories
+
+You can use one of the following templates for your workflow:
 
 
-### Example for a Java project that build with Gradle
+### Example for a Java project that builds with Gradle
 ```
 name: Analyze with CodeGuru Reviewer
 
